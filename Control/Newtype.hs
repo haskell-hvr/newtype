@@ -12,7 +12,7 @@ NB: 'Data.Foldable.foldMap' is a generalized @mconcatMap@ which is a generalized
 
 This package includes 'Newtype' instances for all the (non-GHC\/foreign) newtypes in base (as seen in the examples). However, there are neat things you can do with this with /any/ newtype and you should definitely define your own 'Newtype' instances for the power of this library. For example, see @ala Cont traverse@, with the proper 'Newtype' instance for Cont.
 -}
-module Control.Newtype ( Newtype(..), op, ala, ala', under ) where
+module Control.Newtype ( Newtype(..), op, ala, ala', under, over, underF, overF ) where
 
 import Data.Monoid
 import Control.Applicative
@@ -57,6 +57,17 @@ ala' _ hof f = unpack . hof (pack . f)
 under :: (Newtype n o, Newtype n' o') => (o -> n) -> (n -> n') -> (o -> o')
 under _ f = unpack . f . pack
 
+-- | The opposite of 'under'. I.e., take a function which works on the underlying types, and switch it to a function that works on the newtypes.
+over :: (Newtype n o, Newtype n' o') => (o -> n) -> (o -> o') -> (n -> n')
+over _ f = pack . f . unpack
+
+-- | 'under' lifted into a Functor.
+underF :: (Newtype n o, Newtype n' o', Functor f) => (o -> n) -> (f n -> f n') -> (f o -> f o')
+underF _ f = fmap unpack . f . fmap pack
+
+-- | 'over' lifted into a Functor.
+overF :: (Newtype n o, Newtype n' o', Functor f) => (o -> n) -> (f o -> f o') -> (f n -> f n')
+overF _ f = fmap pack . f . fmap unpack
 
 instance Newtype All Bool where
   pack = All
@@ -74,6 +85,10 @@ instance Newtype (Product a) a where
   pack = Product
   unpack (Product a) = a
 
+instance Newtype (Kleisli m a b) (a -> m b) where
+  pack = Kleisli
+  unpack (Kleisli a) = a
+  
 instance Newtype (WrappedMonad m a) (m a) where
   pack = WrapMonad
   unpack (WrapMonad a) = a
