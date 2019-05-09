@@ -3,6 +3,9 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE TypeFamilies           #-}
+#if __GLASGOW_HASKELL__ >= 704
+{-# LANGUAGE DefaultSignatures      #-}
+#endif
 
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 
@@ -48,14 +51,44 @@ import           Data.Ord
 #if !MIN_VERSION_base(4,7,0)
 -- necessary evil for 'Newtype Fixed'
 import           Unsafe.Coerce         (unsafeCoerce)
+#else
+import           Data.Coerce
 #endif
 
 -- | Given a @newtype@ @n@, we will always have the same unwrapped type @o@, meaning we can represent this with a fundep @n -> o@.
 --
 -- Any instance of this class just needs to let 'pack' equal to the newtype's constructor, and let 'unpack' destruct the @newtype@ with pattern matching.
+--
+-- Starting with @base-4.7.0.0@ / GHC 7.8 default method implementations are provided using "Data.Coerce", i.e.:
+--
+-- @
+-- 'pack' = 'coerce'
+-- 'unpack' = 'coerce'
+-- @
+--
+-- When omitting the method definitions with GHC 7.4 and 7.6 a compile error will be triggered.
 class Newtype n o | n -> o where
   pack :: o -> n
+
   unpack :: n -> o
+
+#if  __GLASGOW_HASKELL__ >= 704
+  default pack :: Coercible o n => o -> n
+  pack = coerce
+
+  default unpack :: Coercible n o => n -> o
+  unpack = coerce
+#endif
+
+#if __GLASGOW_HASKELL__ >= 704 && !MIN_VERSION_base(4,7,0)
+-- Hack: We define a dummy 'Coercible' class to force a
+-- missing-instance compile error when methods are not explicitly
+-- defined
+class Coercible o n
+
+coerce :: a -> b
+coerce = undefined
+#endif
 
 {- TODO: for newtype-0.3
 
