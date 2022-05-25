@@ -1,5 +1,9 @@
 See also https://pvp.haskell.org/faq
 
+## 0.2.2.0
+
+ - Provide safe coerceible based default-methods for pack/unpack
+
 ## 0.2.1.0 *(minor)*
 
  - Added `Newtype` instances for
