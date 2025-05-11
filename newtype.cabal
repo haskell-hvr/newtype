@@ -15,10 +15,10 @@ synopsis:            A typeclass and set of functions for working with newtypes.
 description:         Per Conor McBride, the 'Newtype' typeclass represents the packing and unpacking of a @newtype@, and allows you to operate under that @newtype@ with functions such as 'ala'. See "Control.Newtype" for documentation and examples.
 
 tested-with:
-   GHC == 9.12.0
-   GHC == 9.10.1
-   GHC == 9.8.2
-   GHC == 9.6.6
+   GHC == 9.12.2
+   GHC == 9.10.2
+   GHC == 9.8.4
+   GHC == 9.6.7
    GHC == 9.4.8
    GHC == 9.2.8
    GHC == 9.0.2
