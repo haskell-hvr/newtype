@@ -1,4 +1,7 @@
-See also https://pvp.haskell.org/faq
+## 0.2.2.1
+
+ - Drop support for GHC 7.
+ - Tested with GHC 8.0 - 9.14.
 
 ## 0.2.2.0
 

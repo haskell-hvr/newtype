@@ -1,13 +1,11 @@
 {-# LANGUAGE CPP                    #-}
+{-# LANGUAGE DefaultSignatures      #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE TypeFamilies           #-}
-#if __GLASGOW_HASKELL__ >= 704
-{-# LANGUAGE DefaultSignatures      #-}
-#endif
 
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
+{-# OPTIONS_GHC -Wno-unused-imports #-}
 
 {- |
 Module : Control.Newtype
@@ -42,18 +40,13 @@ module Control.Newtype
 
 import           Control.Applicative
 import           Control.Arrow
+
+import           Data.Coerce
 import           Data.Fixed
 import           Data.Functor.Compose
 import           Data.Functor.Identity
 import           Data.Monoid
 import           Data.Ord
-
-#if !MIN_VERSION_base(4,7,0)
--- necessary evil for 'Newtype Fixed'
-import           Unsafe.Coerce         (unsafeCoerce)
-#else
-import           Data.Coerce
-#endif
 
 -- | Given a @newtype@ @n@, we will always have the same unwrapped type @o@, meaning we can represent this with a fundep @n -> o@.
 --
@@ -72,23 +65,11 @@ class Newtype n o | n -> o where
 
   unpack :: n -> o
 
-#if  __GLASGOW_HASKELL__ >= 704
   default pack :: Coercible o n => o -> n
   pack = coerce
 
   default unpack :: Coercible n o => n -> o
   unpack = coerce
-#endif
-
-#if __GLASGOW_HASKELL__ >= 704 && !MIN_VERSION_base(4,7,0)
--- Hack: We define a dummy 'Coercible' class to force a
--- missing-instance compile error when methods are not explicitly
--- defined
-class Coercible o n
-
-coerce :: a -> b
-coerce = undefined
-#endif
 
 {- TODO: for newtype-0.3
 
@@ -196,37 +177,27 @@ instance ArrowApply a => Newtype (ArrowMonad a b) (a () b) where
 
 -- | @since 0.2.1.0
 instance Newtype (Fixed a) Integer where
-#if MIN_VERSION_base(4,7,0)
   pack = MkFixed
   unpack (MkFixed x) = x
-#else
-  -- 'Fixed' is a newtype, but its constructor wasn't exported before base-4.7.0
-  pack = unsafeCoerce
-  unpack = unsafeCoerce
-#endif
 
 -- | @since 0.2.1.0
 instance Newtype (Dual a) a where
   pack = Dual
   unpack (Dual a) = a
 
-#if MIN_VERSION_base(4,8,0)
 -- | __NOTE__: Type & instance only available with @base ≥ 4.8.0@
 --
 -- @since 0.2.1.0
 instance Newtype (Alt f a) (f a) where
   pack = Alt
   unpack (Alt x) = x
-#endif
 
-#if MIN_VERSION_base(4,6,0)
 -- | __NOTE__: Type & instance only available with @base ≥ 4.6.0@
 --
 -- @since 0.2.1.0
 instance Newtype (Down a) a where
   pack = Down
   unpack (Down a) = a
-#endif
 
 -- | @since 0.2.1.0
 instance Newtype (Identity a) a where
